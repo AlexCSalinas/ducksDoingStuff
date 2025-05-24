@@ -241,44 +241,85 @@
         // Initialize Tone.js
         const synth = new Tone.PolySynth(Tone.Synth, {
             oscillator: {
-                type: "sine"
+                type: "sine"  // Base oscillator for warmth
             },
             envelope: {
-                attack: 0.01,
-                decay: 0.2,
-                sustain: 0.1,
-                release: 0.1
-            },
-            filter: {
-                type: "bandpass",
-                frequency: 1000,
-                Q: 2
+                attack: 0.02,    // Slightly longer attack for smoother start
+                decay: 0.2,      // Longer decay for more natural sound
+                sustain: 0.4,    // Higher sustain for fuller sound
+                release: 0.5     // Longer release for smoother ending
             }
         }).toDestination();
 
-        // Add subtle reverb
-        const reverb = new Tone.Reverb(0.3).toDestination();
-        synth.connect(reverb);
-
-        // Add a filter sweep for quack effect
-        const filter = new Tone.Filter({
-            type: "bandpass",
-            frequency: 1000,
-            Q: 2
+        // Add a more sophisticated effects chain
+        const reverb = new Tone.Reverb({
+            decay: 2.5,          // Longer decay for more space
+            wet: 0.4,            // More reverb for atmosphere
+            preDelay: 0.2        // Longer pre-delay for more depth
         }).toDestination();
-        synth.connect(filter);
+
+        // Add a chorus for richness
+        const chorus = new Tone.Chorus({
+            frequency: 1.5,
+            delayTime: 3.5,
+            depth: 0.7,
+            wet: 0.5
+        }).toDestination();
+
+        // Add a compressor for better dynamics
+        const compressor = new Tone.Compressor({
+            threshold: -24,
+            ratio: 12,
+            attack: 0.003,
+            release: 0.25
+        }).toDestination();
+
+        // Add a subtle EQ
+        const eq = new Tone.EQ3({
+            low: -2,
+            mid: 0,
+            high: 2
+        }).toDestination();
+
+        // Connect the effects chain
+        synth.chain(chorus, eq, compressor, reverb);
 
         // Function to create quack effect
         function applyQuackEffect(note) {
-            // Filter sweep
+            // Create a more sophisticated filter sweep
+            const filter = new Tone.Filter({
+                type: "bandpass",
+                frequency: 800,
+                Q: 2
+            }).toDestination();
+
+            // Connect the current note to the filter
+            synth.connect(filter);
+
+            // Create a more natural filter sweep
             filter.frequency.rampTo(2000, 0.1);
-            filter.frequency.rampTo(1000, 0.2);
+            filter.frequency.rampTo(600, 0.3);
             
-            // Add some noise for quack character
+            // Add subtle noise with better envelope
             const noise = new Tone.Noise("pink").start();
-            noise.volume.value = -20;
-            noise.connect(filter);
-            noise.stop("+0.1");
+            noise.volume.value = -30;  // Even quieter noise
+            const noiseEnv = new Tone.AmplitudeEnvelope({
+                attack: 0.02,
+                decay: 0.2,
+                sustain: 0.1,
+                release: 0.3
+            }).toDestination();
+            noise.connect(noiseEnv);
+            noiseEnv.triggerAttackRelease(0.3);
+            noise.stop("+0.3");
+
+            // Add a subtle pitch bend
+            synth.set({
+                detune: 50
+            });
+            synth.set({
+                detune: 0
+            }, "+0.1");
         }
 
         // Grid setup
@@ -290,8 +331,8 @@
         let isPlaying = false;
         let currentCol = 0;
 
-        // Musical scales (pentatonic)
-        const scale = ['C4', 'D4', 'E4', 'G4', 'A4', 'C5', 'D5', 'E5'];
+        // Musical scales (pentatonic with added notes for more variety)
+        const scale = ['C4', 'D4', 'E4', 'G4', 'A4', 'C5', 'D5', 'E5', 'G5'];
 
         // Create grid
         for (let row = 0; row < ROWS; row++) {
