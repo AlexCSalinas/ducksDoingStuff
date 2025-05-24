@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duck Visual Synthesizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Space Mono', monospace;
+            color: #000;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+        }
+
+        h1 {
+            color: #000;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        button {
+            background: #fff;
+            border: 2px solid #000;
+            color: #000;
+            padding: 10px 20px;
+            font-size: 12px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        button:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 2px 2px 0 #000;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 2px;
+            margin: 0 auto;
+            background: #000;
+            padding: 2px;
+            box-shadow: 8px 8px 0 #000;
+        }
+
+        .duck-cell {
+            aspect-ratio: 1;
+            position: relative;
+            cursor: pointer;
+            background: #fff;
+            overflow: hidden;
+            transition: opacity 0.2s ease;
+        }
+
+        .duck-cell::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: #fff;
+            z-index: 1;
+            transition: opacity 0.2s ease;
+        }
+
+        .duck-cell.active::before {
+            opacity: 0;
+        }
+
+        .duck-cell.playing::before {
+            opacity: 0;
+            animation: flash 0.2s ease-out;
+        }
+
+        @keyframes flash {
+            0% {
+                background: #000;
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .duck-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: relative;
+            z-index: 2;
+            filter: brightness(1);
+            transition: filter 0.2s ease;
+            opacity: 0;
+        }
+
+        .duck-cell.active .duck-img {
+            filter: brightness(1);
+            opacity: 1;
+        }
+
+        .tempo-control {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            color: #000;
+            margin-top: 40px;
+            justify-content: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 200px;
+            height: 2px;
+            background: #000;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #000;
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        .playhead {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #000;
+            pointer-events: none;
+            z-index: 10;
+            transition: left 0.1s linear;
+            opacity: 0.8;
+        }
+
+        #tempoValue {
+            min-width: 80px;
+            text-align: left;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .nav-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+            text-decoration: none;
+            color: #000;
+            z-index: 10000;
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        .nav-button:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        .nav-button:active {
+            transform: translateY(2px);
+            box-shadow: 2px 2px 0 #000;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="nav-button">Back</a>
+    <div class="container">
+        <h1>Duck Synthesizer</h1>
+        
+        <div class="controls">
+            <button id="playBtn">Play</button>
+            <button id="clearBtn">Clear</button>
+            <button id="randomBtn">Random</button>
+        </div>
+
+        <div class="grid-container" style="position: relative;">
+            <div class="playhead" id="playhead"></div>
+            <div class="grid" id="grid"></div>
+        </div>
+
+        <div class="tempo-control">
+            <label>Tempo</label>
+            <input type="range" id="tempoSlider" min="60" max="200" value="120">
+            <span id="tempoValue">120 BPM</span>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Tone.js
+        const synth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: {
+                type: "sine"
+            },
+            envelope: {
+                attack: 0.01,
+                decay: 0.2,
+                sustain: 0.1,
+                release: 0.1
+            },
+            filter: {
+                type: "bandpass",
+                frequency: 1000,
+                Q: 2
+            }
+        }).toDestination();
+
+        // Add subtle reverb
+        const reverb = new Tone.Reverb(0.3).toDestination();
+        synth.connect(reverb);
+
+        // Add a filter sweep for quack effect
+        const filter = new Tone.Filter({
+            type: "bandpass",
+            frequency: 1000,
+            Q: 2
+        }).toDestination();
+        synth.connect(filter);
+
+        // Function to create quack effect
+        function applyQuackEffect(note) {
+            // Filter sweep
+            filter.frequency.rampTo(2000, 0.1);
+            filter.frequency.rampTo(1000, 0.2);
+            
+            // Add some noise for quack character
+            const noise = new Tone.Noise("pink").start();
+            noise.volume.value = -20;
+            noise.connect(filter);
+            noise.stop("+0.1");
+        }
+
+        // Grid setup
+        const COLS = 16;
+        const ROWS = 8;
+        const grid = document.getElementById('grid');
+        const playhead = document.getElementById('playhead');
+        let cells = [];
+        let isPlaying = false;
+        let currentCol = 0;
+
+        // Musical scales (pentatonic)
+        const scale = ['C4', 'D4', 'E4', 'G4', 'A4', 'C5', 'D5', 'E5'];
+
+        // Create grid
+        for (let row = 0; row < ROWS; row++) {
+            cells[row] = [];
+            for (let col = 0; col < COLS; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'duck-cell';
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+                
+                const img = document.createElement('img');
+                img.className = 'duck-img';
+                img.src = 'duck.jpg';
+                img.alt = 'Duck';
+                
+                cell.appendChild(img);
+                cell.addEventListener('click', toggleCell);
+                grid.appendChild(cell);
+                cells[row][col] = cell;
+            }
+        }
+
+        function toggleCell(e) {
+            const cell = e.currentTarget;
+            cell.classList.toggle('active');
+            
+            // Play a preview note when toggling
+            const row = parseInt(cell.dataset.row);
+            applyQuackEffect(scale[row]);
+            synth.triggerAttackRelease(scale[row], '16n');
+        }
+
+        // Sequencer
+        const sequence = new Tone.Sequence((time, col) => {
+            // Update playhead position
+            Tone.Draw.schedule(() => {
+                const cellWidth = cells[0][0].offsetWidth + 2; // including gap
+                playhead.style.left = `${col * cellWidth + cellWidth / 2}px`;
+                
+                // Remove playing class from previous column
+                for (let row = 0; row < ROWS; row++) {
+                    cells[row][(col - 1 + COLS) % COLS].classList.remove('playing');
+                }
+                
+                // Play active notes in current column
+                for (let row = 0; row < ROWS; row++) {
+                    if (cells[row][col].classList.contains('active')) {
+                        cells[row][col].classList.add('playing');
+                    }
+                }
+            }, time);
+            
+            // Play notes
+            const notes = [];
+            for (let row = 0; row < ROWS; row++) {
+                if (cells[row][col].classList.contains('active')) {
+                    notes.push(scale[row]);
+                    applyQuackEffect(scale[row]);
+                }
+            }
+            if (notes.length > 0) {
+                synth.triggerAttackRelease(notes, '16n', time);
+            }
+            
+            currentCol = col;
+        }, [...Array(COLS).keys()], '16n');
+
+        // Controls
+        document.getElementById('playBtn').addEventListener('click', async () => {
+            if (isPlaying) {
+                Tone.Transport.stop();
+                sequence.stop();
+                document.getElementById('playBtn').textContent = 'Play';
+                playhead.style.display = 'none';
+            } else {
+                await Tone.start();
+                Tone.Transport.start();
+                sequence.start(0);
+                document.getElementById('playBtn').textContent = 'Stop';
+                playhead.style.display = 'block';
+            }
+            isPlaying = !isPlaying;
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    cells[row][col].classList.remove('active', 'playing');
+                }
+            }
+        });
+
+        document.getElementById('randomBtn').addEventListener('click', () => {
+            // Clear first
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    cells[row][col].classList.remove('active');
+                }
+            }
+            // Add random pattern
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    if (Math.random() > 0.8) {
+                        cells[row][col].classList.add('active');
+                    }
+                }
+            }
+        });
+
+        // Tempo control
+        const tempoSlider = document.getElementById('tempoSlider');
+        const tempoValue = document.getElementById('tempoValue');
+        
+        tempoSlider.addEventListener('input', (e) => {
+            const bpm = e.target.value;
+            Tone.Transport.bpm.value = bpm;
+            tempoValue.textContent = `${bpm} BPM`;
+        });
+
+        // Initialize tempo
+        Tone.Transport.bpm.value = 120;
+        
+        // Hide playhead initially
+        playhead.style.display = 'none';
+    </script>
+</body>
+</html>
