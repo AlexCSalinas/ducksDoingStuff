@@ -241,107 +241,63 @@
         // Initialize Tone.js
         const synth = new Tone.PolySynth(Tone.Synth, {
             oscillator: {
-                type: "sine"  // Base oscillator for warmth
+                type: "triangle"  // Warmer sound than sine
             },
             envelope: {
-                attack: 0.02,    // Slightly longer attack for smoother start
-                decay: 0.2,      // Longer decay for more natural sound
-                sustain: 0.4,    // Higher sustain for fuller sound
-                release: 0.5     // Longer release for smoother ending
+                attack: 0.005,    // Faster attack for more immediate response
+                decay: 0.1,       // Shorter decay
+                sustain: 0.2,     // Higher sustain for fuller sound
+                release: 0.2      // Slightly longer release for smoother ending
             },
-            volume: -10  // Reduce overall volume to prevent clipping
+            filter: {
+                type: "bandpass",
+                frequency: 1200,  // Higher frequency for more presence
+                Q: 3             // Sharper resonance
+            }
         }).toDestination();
 
-        // Add a more sophisticated effects chain
+        // Add reverb with better settings
         const reverb = new Tone.Reverb({
-            decay: 2.5,          // Longer decay for more space
-            wet: 0.4,            // More reverb for atmosphere
-            preDelay: 0.2        // Longer pre-delay for more depth
+            decay: 1.5,          // Longer decay
+            wet: 0.3,            // Less wet signal
+            preDelay: 0.1        // Slight pre-delay
         }).toDestination();
+        synth.connect(reverb);
 
-        // Add a chorus for richness
-        const chorus = new Tone.Chorus({
-            frequency: 1.5,
-            delayTime: 3.5,
-            depth: 0.7,
-            wet: 0.5
+        // Add a filter sweep for quack effect
+        const filter = new Tone.Filter({
+            type: "bandpass",
+            frequency: 1200,
+            Q: 3
         }).toDestination();
+        synth.connect(filter);
 
-        // Add a compressor for better dynamics
-        const compressor = new Tone.Compressor({
-            threshold: -24,
-            ratio: 12,
-            attack: 0.003,
-            release: 0.25
+        // Add a subtle delay for more space
+        const delay = new Tone.FeedbackDelay({
+            delayTime: 0.25,
+            feedback: 0.2,
+            wet: 0.2
         }).toDestination();
-
-        // Add a subtle EQ
-        const eq = new Tone.EQ3({
-            low: -2,
-            mid: 0,
-            high: 2
-        }).toDestination();
-
-        // Add a limiter to prevent clipping
-        const limiter = new Tone.Limiter(-3).toDestination();
-
-        // Connect the effects chain
-        synth.chain(chorus, eq, compressor, reverb, limiter);
+        synth.connect(delay);
 
         // Function to create quack effect
         function applyQuackEffect(note) {
-            // Create a more sophisticated filter sweep
-            const filter = new Tone.Filter({
-                type: "bandpass",
-                frequency: 800,
-                Q: 2
-            }).toDestination();
-
-            // Connect the current note to the filter
-            synth.connect(filter);
-
-            // Create a more natural filter sweep
-            filter.frequency.rampTo(2000, 0.1);
-            filter.frequency.rampTo(600, 0.3);
+            // More dynamic filter sweep
+            filter.frequency.rampTo(2000, 0.05);
+            filter.frequency.rampTo(800, 0.15);
             
-            // Add subtle noise with better envelope
+            // Add noise with better envelope
             const noise = new Tone.Noise("pink").start();
-            noise.volume.value = -30;  // Even quieter noise
+            noise.volume.value = -24;  // Quieter noise
             const noiseEnv = new Tone.AmplitudeEnvelope({
-                attack: 0.02,
-                decay: 0.2,
+                attack: 0.01,
+                decay: 0.1,
                 sustain: 0.1,
-                release: 0.3
+                release: 0.1
             }).toDestination();
             noise.connect(noiseEnv);
-            noiseEnv.triggerAttackRelease(0.3);
-            noise.stop("+0.3");
-
-            // Add a subtle pitch bend
-            synth.set({
-                detune: 50
-            });
-            synth.set({
-                detune: 0
-            }, "+0.1");
-        }
-
-        // Function to handle note stacking
-        function handleNoteStacking(notes) {
-            // Sort notes by frequency to ensure consistent voicing
-            notes.sort((a, b) => {
-                return Tone.Frequency(a).toMidi() - Tone.Frequency(b).toMidi();
-            });
-
-            // Apply dynamic volume reduction based on number of notes
-            const volumeReduction = Math.min(notes.length * 2, 10); // Reduce volume by 2dB per note, up to 10dB
-            synth.volume.value = -10 - volumeReduction;
-
-            // Add slight timing offset for each note to prevent harsh attacks
-            notes.forEach((note, index) => {
-                const delay = index * 0.02; // 20ms delay between each note
-                synth.triggerAttackRelease(note, '16n', Tone.now() + delay);
-            });
+            noiseEnv.triggerAttackRelease(0.2);
+            noise.stop("+0.2");
         }
 
         // Grid setup
@@ -407,17 +363,16 @@
                 }
             }, time);
             
-            // Collect notes to play
+            // Play notes
             const notes = [];
             for (let row = 0; row < ROWS; row++) {
                 if (cells[row][col].classList.contains('active')) {
                     notes.push(scale[row]);
+                    applyQuackEffect(scale[row]);
                 }
             }
-            
-            // Play notes with improved stacking
             if (notes.length > 0) {
-                handleNoteStacking(notes);
+                synth.triggerAttackRelease(notes, '16n', time);
             }
             
             currentCol = col;
