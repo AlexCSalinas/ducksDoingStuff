@@ -248,7 +248,8 @@
                 decay: 0.2,      // Longer decay for more natural sound
                 sustain: 0.4,    // Higher sustain for fuller sound
                 release: 0.5     // Longer release for smoother ending
-            }
+            },
+            volume: -10  // Reduce overall volume to prevent clipping
         }).toDestination();
 
         // Add a more sophisticated effects chain
@@ -281,8 +282,11 @@
             high: 2
         }).toDestination();
 
+        // Add a limiter to prevent clipping
+        const limiter = new Tone.Limiter(-3).toDestination();
+
         // Connect the effects chain
-        synth.chain(chorus, eq, compressor, reverb);
+        synth.chain(chorus, eq, compressor, reverb, limiter);
 
         // Function to create quack effect
         function applyQuackEffect(note) {
@@ -320,6 +324,24 @@
             synth.set({
                 detune: 0
             }, "+0.1");
+        }
+
+        // Function to handle note stacking
+        function handleNoteStacking(notes) {
+            // Sort notes by frequency to ensure consistent voicing
+            notes.sort((a, b) => {
+                return Tone.Frequency(a).toMidi() - Tone.Frequency(b).toMidi();
+            });
+
+            // Apply dynamic volume reduction based on number of notes
+            const volumeReduction = Math.min(notes.length * 2, 10); // Reduce volume by 2dB per note, up to 10dB
+            synth.volume.value = -10 - volumeReduction;
+
+            // Add slight timing offset for each note to prevent harsh attacks
+            notes.forEach((note, index) => {
+                const delay = index * 0.02; // 20ms delay between each note
+                synth.triggerAttackRelease(note, '16n', Tone.now() + delay);
+            });
         }
 
         // Grid setup
@@ -385,16 +407,17 @@
                 }
             }, time);
             
-            // Play notes
+            // Collect notes to play
             const notes = [];
             for (let row = 0; row < ROWS; row++) {
                 if (cells[row][col].classList.contains('active')) {
                     notes.push(scale[row]);
-                    applyQuackEffect(scale[row]);
                 }
             }
+            
+            // Play notes with improved stacking
             if (notes.length > 0) {
-                synth.triggerAttackRelease(notes, '16n', time);
+                handleNoteStacking(notes);
             }
             
             currentCol = col;
