@@ -27,6 +27,7 @@
         .container {
             width: 85%;
             max-width: 1000px;
+            padding: 20px;
         }
 
         h1 {
@@ -74,12 +75,14 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(16, 1fr);
-            grid-template-rows: repeat(8, 1fr);
+            grid-template-rows: repeat(4, 1fr);
             gap: 1px;
             margin: 0 auto;
             background: #000;
             padding: 1px;
             box-shadow: 6px 6px 0 #000;
+            max-width: 800px;
+            aspect-ratio: 4/1;
         }
 
         .duck-cell {
@@ -89,6 +92,7 @@
             background: #fff;
             overflow: hidden;
             transition: opacity 0.2s ease;
+            min-height: 40px;
         }
 
         .duck-cell::before {
@@ -212,6 +216,12 @@
             transform: translateY(2px);
             box-shadow: 2px 2px 0 #000;
         }
+
+        .grid-container {
+            position: relative;
+            margin: 20px auto;
+            max-width: 800px;
+        }
     </style>
 </head>
 <body>
@@ -302,7 +312,7 @@
 
         // Grid setup
         const COLS = 16;
-        const ROWS = 8;
+        const ROWS = 4;
         const grid = document.getElementById('grid');
         const playhead = document.getElementById('playhead');
         let cells = [];
@@ -310,7 +320,7 @@
         let currentCol = 0;
 
         // Musical scales (pentatonic with added notes for more variety)
-        const scale = ['C4', 'D4', 'E4', 'G4', 'A4', 'C5', 'D5', 'E5', 'G5'];
+        const scale = ['C4', 'E4', 'G4', 'C5'];
 
         // Create grid
         for (let row = 0; row < ROWS; row++) {
