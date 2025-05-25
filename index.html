@@ -81,6 +81,7 @@
             font-size: 10px;
             box-shadow: 8px 8px 0 #000;
             transition: transform 0.3s ease-in-out;
+            cursor: none;
         }
 
         .dashboard.collapsed {
@@ -282,6 +283,8 @@
             z-index: 9999;
             transform: translate(-50%, -50%);
             mix-blend-mode: difference;
+            opacity: 0;
+            transition: opacity 0.1s;
         }
 
         .custom-cursor::before {
@@ -575,6 +578,15 @@
                 
                 document.addEventListener('mouseenter', () => {
                     this.cursor.style.opacity = '1';
+                });
+
+                // Add hover events for the dashboard
+                this.dashboard.addEventListener('mouseenter', () => {
+                    this.cursor.style.opacity = '1';
+                });
+
+                this.dashboard.addEventListener('mouseleave', () => {
+                    this.cursor.style.opacity = '0';
                 });
             }
             
