@@ -324,21 +324,6 @@
             z-index: 1000;
         }
 
-        /* Fallback for when duck.jpg doesn't load */
-        .cat-particle::before {
-            content: "🦆";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 32px;
-            display: block;
-        }
-
-        .cat-particle[style*="background-image"]::before {
-            display: none;
-        }
-
         /* Hide scrollbars */
         ::-webkit-scrollbar {
             display: none;
