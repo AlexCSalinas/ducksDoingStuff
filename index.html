@@ -297,23 +297,19 @@
         }
 
         .custom-cursor::before {
-            content: "";
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #fff;
-            background: transparent;
+            display: none;
         }
 
         .custom-cursor::after {
             content: "";
             position: absolute;
-            width: 2px;
-            height: 2px;
+            width: 4px;
+            height: 4px;
             background: #fff;
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
+            border-radius: 50%;
         }
 
         .cat-particle {
