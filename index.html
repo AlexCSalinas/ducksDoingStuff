@@ -81,6 +81,16 @@
             font-size: 10px;
             box-shadow: 8px 8px 0 #000;
             transition: transform 0.3s ease-in-out;
+        }
+
+        .dashboard * {
+            cursor: none;
+        }
+
+        .dashboard input[type="range"],
+        .dashboard select,
+        .dashboard button,
+        .dashboard input[type="checkbox"] {
             cursor: none;
         }
 
@@ -280,11 +290,10 @@
             width: 20px;
             height: 20px;
             pointer-events: none;
-            z-index: 9999;
+            z-index: 10001;
             transform: translate(-50%, -50%);
             mix-blend-mode: difference;
-            opacity: 0;
-            transition: opacity 0.1s;
+            opacity: 1;
         }
 
         .custom-cursor::before {
@@ -292,7 +301,7 @@
             position: absolute;
             width: 20px;
             height: 20px;
-            border: 2px solid #000;
+            border: 2px solid #fff;
             background: transparent;
         }
 
@@ -301,7 +310,7 @@
             position: absolute;
             width: 2px;
             height: 2px;
-            background: #000;
+            background: #fff;
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
@@ -580,13 +589,9 @@
                     this.cursor.style.opacity = '1';
                 });
 
-                // Add hover events for the dashboard
+                // Show cursor when over dashboard
                 this.dashboard.addEventListener('mouseenter', () => {
                     this.cursor.style.opacity = '1';
-                });
-
-                this.dashboard.addEventListener('mouseleave', () => {
-                    this.cursor.style.opacity = '0';
                 });
             }
             
