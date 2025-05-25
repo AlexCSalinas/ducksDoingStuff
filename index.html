@@ -84,33 +84,43 @@
         }
 
         .dashboard.collapsed {
-            transform: translateX(calc(100% + 20px));
+            transform: translateX(calc(100% - 20px));
         }
 
-        .dashboard-chip {
-            position: fixed;
-            top: 20px;
-            right: 20px;
+        .dashboard-toggle {
+            position: absolute;
+            top: 50%;
+            left: -20px;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 40px;
             background: #fff;
             border: 2px solid #000;
-            padding: 8px 12px;
-            z-index: 10000;
-            font-size: 10px;
-            box-shadow: 4px 4px 0 #000;
+            border-right: none;
             cursor: pointer;
-            display: none;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
         }
 
-        .dashboard-chip.visible {
-            display: block;
+        .dashboard-toggle::before {
+            content: "◀";
+            font-size: 12px;
+            transition: transform 0.3s ease-in-out;
         }
 
-        .dashboard-chip:hover {
+        .dashboard.collapsed .dashboard-toggle::before {
+            transform: rotate(180deg);
+        }
+
+        .dashboard-toggle:hover {
             background: #000;
             color: #fff;
+        }
+
+        .dashboard-toggle:active {
+            transform: translateY(-50%) translateX(1px);
         }
 
         .dashboard h3 {
@@ -345,6 +355,7 @@
     <a href="duckMusic.html" class="nav-button">Music</a>
     <div class="dashboard">
         <h3>DUCK SYSTEM</h3>
+        <button class="dashboard-toggle"></button>
         
         <div class="control-group">
             <label for="frequency">Spawn Rate</label>
@@ -444,8 +455,6 @@
         <button id="clearAll">Clear</button>
     </div>
 
-    <div class="dashboard-chip">Dashboard</div>
-
     <div class="custom-cursor"></div>
     
     <script>
@@ -475,7 +484,7 @@
                 
                 this.cursor = document.querySelector('.custom-cursor');
                 this.dashboard = document.querySelector('.dashboard');
-                this.dashboardChip = document.querySelector('.dashboard-chip');
+                this.dashboardToggle = document.querySelector('.dashboard-toggle');
                 this.initControls();
                 this.bindEvents();
                 this.animate();
@@ -483,18 +492,8 @@
             
             initControls() {
                 // Add dashboard toggle functionality
-                this.dashboardChip.addEventListener('click', () => {
+                this.dashboardToggle.addEventListener('click', () => {
                     this.dashboard.classList.toggle('collapsed');
-                    this.dashboardChip.classList.toggle('visible');
-                });
-
-                // Show chip when dashboard is collapsed
-                this.dashboard.addEventListener('transitionend', () => {
-                    if (this.dashboard.classList.contains('collapsed')) {
-                        this.dashboardChip.classList.add('visible');
-                    } else {
-                        this.dashboardChip.classList.remove('visible');
-                    }
                 });
 
                 const controls = {
