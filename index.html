@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duck Simulation</title>
+    <title>Enhanced Duck Simulation</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
         
@@ -73,7 +73,7 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            width: 220px;
+            width: 240px;
             background: #fff;
             border: 2px solid #000;
             padding: 12px;
@@ -81,17 +81,8 @@
             font-size: 10px;
             box-shadow: 8px 8px 0 #000;
             transition: transform 0.3s ease-in-out;
-        }
-
-        .dashboard * {
-            cursor: none;
-        }
-
-        .dashboard input[type="range"],
-        .dashboard select,
-        .dashboard button,
-        .dashboard input[type="checkbox"] {
-            cursor: none;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
         }
 
         .dashboard.collapsed {
@@ -123,15 +114,6 @@
 
         .dashboard.collapsed .dashboard-toggle::before {
             transform: rotate(180deg);
-        }
-
-        .dashboard-toggle:hover {
-            background: #000;
-            color: #fff;
-        }
-
-        .dashboard-toggle:active {
-            transform: translateY(-50%) translateX(1px);
         }
 
         .dashboard h3 {
@@ -176,14 +158,6 @@
             border-radius: 0;
         }
 
-        .control-group input[type="range"]::-moz-range-thumb {
-            width: 12px;
-            height: 12px;
-            background: #000;
-            cursor: pointer;
-            border-radius: 0;
-        }
-
         .control-group select {
             width: 100%;
             padding: 3px 4px;
@@ -193,11 +167,6 @@
             border: 1px solid #000;
             cursor: pointer;
             text-transform: uppercase;
-        }
-
-        .control-group select:focus {
-            outline: 2px solid #000;
-            outline-offset: 1px;
         }
 
         .control-group span {
@@ -211,25 +180,25 @@
 
         .checkbox-group {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             margin-top: 4px;
+            flex-wrap: wrap;
         }
 
         .checkbox-wrapper {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .control-group input[type="checkbox"] {
             -webkit-appearance: none;
             appearance: none;
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             background: #fff;
             border: 2px solid #000;
             cursor: pointer;
-            position: relative;
         }
 
         .control-group input[type="checkbox"]:checked {
@@ -237,7 +206,7 @@
         }
 
         .checkbox-wrapper label {
-            font-size: 10px;
+            font-size: 8px;
             text-transform: uppercase;
             margin-bottom: 0;
             cursor: pointer;
@@ -274,15 +243,12 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             transition: all 0.1s;
+            margin-top: 8px;
         }
 
         #clearAll:hover {
             background: #000;
             color: #fff;
-        }
-
-        #clearAll:active {
-            transform: translateY(2px);
         }
 
         .custom-cursor {
@@ -294,10 +260,6 @@
             transform: translate(-50%, -50%);
             mix-blend-mode: difference;
             opacity: 1;
-        }
-
-        .custom-cursor::before {
-            display: none;
         }
 
         .custom-cursor::after {
@@ -312,146 +274,213 @@
             border-radius: 50%;
         }
 
-        .cat-particle {
+        .particle {
             position: fixed;
-            width: 60px;
-            height: 60px;
-            background-image: url('duck.jpg');
+            width: 40px;
+            height: 40px;
+            background: url('duck.jpg') no-repeat center center;
             background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
             pointer-events: none;
             z-index: 1000;
+            transition: none;
+            will-change: transform;
         }
 
-        /* Hide scrollbars */
-        ::-webkit-scrollbar {
-            display: none;
-        }
-
-        body {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        /* Subtle divider */
         .divider {
             height: 1px;
             background: #000;
             margin: 8px 0;
             opacity: 0.2;
         }
+
+        .section-header {
+            font-weight: 700;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 10px 0 6px 0;
+            padding: 4px;
+            background: #f0f0f0;
+            text-align: center;
+        }
+
+        /* Canvas for field visualization */
+        #fieldCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.3;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #000;
+        }
     </style>
 </head>
 <body>
-    <div class="page-title">Ducks Simulator</div>
-    <a href="duckMusic.html" class="nav-button">Music</a>
+    <div class="page-title">Enhanced Duck Physics Lab</div>
+    <canvas id="fieldCanvas"></canvas>
+    
     <div class="dashboard">
-        <h3>DUCK SYSTEM</h3>
+        <h3>PHYSICS LAB</h3>
         <button class="dashboard-toggle"></button>
         
+        <div class="section-header">Emission Patterns</div>
         <div class="control-group">
             <label for="frequency">Spawn Rate</label>
-            <input type="range" id="frequency" min="1" max="50" value="20">
-            <span id="frequencyValue">20 Hz</span>
+            <input type="range" id="frequency" min="1" max="100" value="30">
+            <span id="frequencyValue">30 Hz</span>
         </div>
         
         <div class="control-group">
-            <label for="pattern">Pattern</label>
+            <label for="pattern">Mathematical Pattern</label>
             <select id="pattern">
                 <option value="radial">Radial</option>
                 <option value="spiral" selected>Spiral</option>
-                <option value="cone">Cone</option>
-                <option value="grid">Grid</option>
-                <option value="wave">Wave</option>
                 <option value="fibonacci">Fibonacci</option>
-                <option value="rose">Rose</option>
-                <option value="lissajous">Lissajous</option>
-                <option value="polar">Polar</option>
+                <option value="mandelbrot">Mandelbrot</option>
+                <option value="fractal_tree">Fractal Tree</option>
+                <option value="chaos_attractor">Chaos Attractor</option>
+                <option value="fourier">Fourier Series</option>
+                <option value="parametric">Parametric Curves</option>
+                <option value="cellular">Cellular Automata</option>
+                <option value="voronoi">Voronoi</option>
             </select>
         </div>
         
+        <div class="section-header">Physical Properties</div>
         <div class="control-group">
-            <label for="velocity">Velocity</label>
-            <input type="range" id="velocity" min="0.5" max="8" step="0.1" value="3">
-            <span id="velocityValue">3.0</span>
+            <label for="velocity">Initial Velocity</label>
+            <input type="range" id="velocity" min="0.1" max="10" step="0.1" value="3">
+            <span id="velocityValue">3.0 m/s</span>
         </div>
         
         <div class="control-group">
-            <label for="spread">Spread</label>
-            <input type="range" id="spread" min="15" max="360" value="360">
-            <span id="spreadValue">360°</span>
+            <label for="mass">Particle Mass</label>
+            <input type="range" id="mass" min="0.1" max="5" step="0.1" value="1">
+            <span id="massValue">1.0 kg</span>
         </div>
         
         <div class="control-group">
-            <label for="gravity">Gravity</label>
-            <input type="range" id="gravity" min="0" max="0.5" step="0.01" value="0">
-            <span id="gravityValue">0.00</span>
+            <label for="drag">Air Resistance</label>
+            <input type="range" id="drag" min="0" max="0.05" step="0.001" value="0.001">
+            <span id="dragValue">0.001</span>
         </div>
         
         <div class="control-group">
-            <label for="lifetime">Lifetime</label>
-            <input type="range" id="lifetime" min="500" max="5000" step="100" value="2000">
-            <span id="lifetimeValue">2000 ms</span>
+            <label for="gravity">Gravity Field</label>
+            <input type="range" id="gravity" min="-0.5" max="0.5" step="0.01" value="0">
+            <span id="gravityValue">0.00 m/s²</span>
         </div>
-
+        
+        <div class="section-header">Force Fields</div>
         <div class="control-group">
-            <label for="sizeVariation">Size Variation</label>
-            <input type="range" id="sizeVariation" min="0" max="100" value="50">
-            <span id="sizeVariationValue">50%</span>
-        </div>
-
-        <div class="control-group">
-            <label for="colorCycle">Color Cycle</label>
-            <input type="range" id="colorCycle" min="0" max="5" step="0.1" value="1">
-            <span id="colorCycleValue">1.0</span>
-        </div>
-
-        <div class="control-group">
-            <label for="attractionMode">Force Mode</label>
-            <select id="attractionMode">
+            <label for="fieldType">Field Type</label>
+            <select id="fieldType">
                 <option value="none">None</option>
-                <option value="center">Center</option>
-                <option value="mouse">Attract</option>
-                <option value="repulsion">Repel</option>
-                <option value="orbit">Orbit</option>
+                <option value="gravitational">Gravitational</option>
+                <option value="magnetic">Magnetic</option>
+                <option value="electric">Electric</option>
+                <option value="vortex">Vortex</option>
+                <option value="wave">Wave Field</option>
+                <option value="turbulence">Turbulence</option>
             </select>
         </div>
-
+        
         <div class="control-group">
-            <label for="forceStrength">Force Strength</label>
-            <input type="range" id="forceStrength" min="0" max="2" step="0.1" value="0.5">
-            <span id="forceStrengthValue">0.5</span>
+            <label for="fieldStrength">Field Strength</label>
+            <input type="range" id="fieldStrength" min="0" max="2" step="0.1" value="0.5">
+            <span id="fieldStrengthValue">0.5</span>
         </div>
-
-        <div class="divider"></div>
-
+        
+        <div class="control-group">
+            <label for="waveFrequency">Wave Frequency</label>
+            <input type="range" id="waveFrequency" min="0.1" max="5" step="0.1" value="1">
+            <span id="waveFrequencyValue">1.0 Hz</span>
+        </div>
+        
+        <div class="section-header">Interactions</div>
+        <div class="control-group">
+            <label for="interactionType">Particle Interactions</label>
+            <select id="interactionType">
+                <option value="none">None</option>
+                <option value="collision">Elastic Collision</option>
+                <option value="flocking">Flocking (Boids)</option>
+                <option value="coulomb">Coulomb Forces</option>
+                <option value="van_der_waals">Van der Waals</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="cohesion">Cohesion</label>
+            <input type="range" id="cohesion" min="0" max="2" step="0.1" value="0.5">
+            <span id="cohesionValue">0.5</span>
+        </div>
+        
+        <div class="control-group">
+            <label for="separation">Separation</label>
+            <input type="range" id="separation" min="0" max="2" step="0.1" value="0.8">
+            <span id="separationValue">0.8</span>
+        </div>
+        
+        <div class="section-header">Advanced</div>
+        <div class="control-group">
+            <label for="temperature">Temperature</label>
+            <input type="range" id="temperature" min="0" max="500" value="100">
+            <span id="temperatureValue">100 K</span>
+        </div>
+        
+        <div class="control-group">
+            <label for="lifetime">Particle Lifetime</label>
+            <input type="range" id="lifetime" min="1000" max="10000" step="100" value="3000">
+            <span id="lifetimeValue">3000 ms</span>
+        </div>
+        
         <div class="control-group">
             <div class="checkbox-group">
                 <div class="checkbox-wrapper">
-                    <input type="checkbox" id="trails">
-                    <label for="trails">Trails</label>
+                    <input type="checkbox" id="showField">
+                    <label for="showField">Field</label>
                 </div>
                 <div class="checkbox-wrapper">
-                    <input type="checkbox" id="bounceMode">
-                    <label for="bounceMode">Bounce</label>
+                    <input type="checkbox" id="showTrails">
+                    <label for="showTrails">Trails</label>
+                </div>
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="quantumMode">
+                    <label for="quantumMode">Quantum</label>
+                </div>
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="conserveEnergy">
+                    <label for="conserveEnergy">Energy</label>
                 </div>
             </div>
         </div>
         
         <div class="stats">
             <div>Active <span id="particleCount">0</span></div>
-            <div>Total <span id="totalSpawned">0</span></div>
-            <div>Velocity <span id="avgVelocity">0.0</span></div>
+            <div>Total Energy <span id="totalEnergy">0.0 J</span></div>
+            <div>Avg Velocity <span id="avgVelocity">0.0 m/s</span></div>
+            <div>Temperature <span id="sysTemp">0.0 K</span></div>
         </div>
         
-        <button id="clearAll">Clear</button>
+        <button id="clearAll">Clear System</button>
     </div>
 
     <div class="custom-cursor"></div>
     
     <script>
-        class ParticleSystem {
+        class AdvancedParticleSystem {
             constructor() {
                 this.mouseX = 0;
                 this.mouseY = 0;
@@ -459,20 +488,30 @@
                 this.lastSpawnTime = 0;
                 this.totalSpawned = 0;
                 this.time = 0;
+                this.canvas = document.getElementById('fieldCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                this.setupCanvas();
                 
                 this.params = {
-                    frequency: 20,      // Hz
+                    frequency: 30,
                     pattern: 'spiral',
                     velocity: 3.0,
-                    spread: 360,        // degrees
+                    mass: 1.0,
+                    drag: 0.001,
                     gravity: 0,
-                    lifetime: 2000,     // ms
-                    sizeVariation: 50,  // %
-                    colorCycle: 1.0,
-                    attractionMode: 'none',
-                    forceStrength: 0.5,
-                    trails: false,
-                    bounceMode: false
+                    fieldType: 'none',
+                    fieldStrength: 0.5,
+                    waveFrequency: 1.0,
+                    interactionType: 'none',
+                    cohesion: 0.5,
+                    separation: 0.8,
+                    temperature: 100,
+                    lifetime: 3000,
+                    showField: false,
+                    showTrails: false,
+                    quantumMode: false,
+                    conserveEnergy: false
                 };
                 
                 this.cursor = document.querySelector('.custom-cursor');
@@ -483,70 +522,67 @@
                 this.animate();
             }
             
+            setupCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                
+                window.addEventListener('resize', () => {
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
+                });
+            }
+            
             initControls() {
-                // Add dashboard toggle functionality
                 this.dashboardToggle.addEventListener('click', () => {
                     this.dashboard.classList.toggle('collapsed');
                 });
 
                 const controls = {
-                    frequency: { element: 'frequency', display: 'frequencyValue', suffix: ' Hz' },
-                    velocity: { element: 'velocity', display: 'velocityValue', suffix: '' },
-                    spread: { element: 'spread', display: 'spreadValue', suffix: '°' },
-                    gravity: { element: 'gravity', display: 'gravityValue', suffix: '' },
-                    lifetime: { element: 'lifetime', display: 'lifetimeValue', suffix: ' ms' },
-                    sizeVariation: { element: 'sizeVariation', display: 'sizeVariationValue', suffix: '%' },
-                    colorCycle: { element: 'colorCycle', display: 'colorCycleValue', suffix: '' },
-                    forceStrength: { element: 'forceStrength', display: 'forceStrengthValue', suffix: '' }
+                    frequency: { suffix: ' Hz' },
+                    velocity: { suffix: ' m/s', decimals: 1 },
+                    mass: { suffix: ' kg', decimals: 1 },
+                    drag: { suffix: '', decimals: 3 },
+                    gravity: { suffix: ' m/s²', decimals: 2 },
+                    fieldStrength: { suffix: '', decimals: 1 },
+                    waveFrequency: { suffix: ' Hz', decimals: 1 },
+                    cohesion: { suffix: '', decimals: 1 },
+                    separation: { suffix: '', decimals: 1 },
+                    temperature: { suffix: ' K', decimals: 0 },
+                    lifetime: { suffix: ' ms', decimals: 0 }
                 };
                 
                 Object.entries(controls).forEach(([param, config]) => {
-                    const input = document.getElementById(config.element);
-                    const display = document.getElementById(config.display);
+                    const input = document.getElementById(param);
+                    const display = document.getElementById(param + 'Value');
                     
-                    input.addEventListener('input', (e) => {
-                        const value = parseFloat(e.target.value);
-                        this.params[param] = value;
-                        
-                        if (param === 'gravity' || param === 'colorCycle' || param === 'forceStrength') {
-                            display.textContent = value.toFixed(2) + config.suffix;
-                        } else if (param === 'velocity') {
-                            display.textContent = value.toFixed(1) + config.suffix;
-                        } else {
-                            display.textContent = value.toString() + config.suffix;
-                        }
-                    });
+                    if (input && display) {
+                        input.addEventListener('input', (e) => {
+                            const value = parseFloat(e.target.value);
+                            this.params[param] = value;
+                            
+                            const formatted = config.decimals !== undefined ? 
+                                value.toFixed(config.decimals) : value.toString();
+                            display.textContent = formatted + config.suffix;
+                        });
+                    }
                 });
                 
-                document.getElementById('pattern').addEventListener('change', (e) => {
-                    this.params.pattern = e.target.value;
+                ['pattern', 'fieldType', 'interactionType'].forEach(param => {
+                    const select = document.getElementById(param);
+                    if (select) {
+                        select.addEventListener('change', (e) => {
+                            this.params[param] = e.target.value;
+                        });
+                    }
                 });
                 
-                document.addEventListener('mousemove', (e) => {
-                    this.mouseX = e.clientX;
-                    this.mouseY = e.clientY;
-                    this.cursor.style.left = this.mouseX + 'px';
-                    this.cursor.style.top = this.mouseY + 'px';
-                });
-                
-                document.addEventListener('mouseleave', () => {
-                    this.cursor.style.opacity = '0';
-                });
-                
-                document.addEventListener('mouseenter', () => {
-                    this.cursor.style.opacity = '1';
-                });
-                
-                document.getElementById('attractionMode').addEventListener('change', (e) => {
-                    this.params.attractionMode = e.target.value;
-                });
-                
-                document.getElementById('trails').addEventListener('change', (e) => {
-                    this.params.trails = e.target.checked;
-                });
-                
-                document.getElementById('bounceMode').addEventListener('change', (e) => {
-                    this.params.bounceMode = e.target.checked;
+                ['showField', 'showTrails', 'quantumMode', 'conserveEnergy'].forEach(param => {
+                    const checkbox = document.getElementById(param);
+                    if (checkbox) {
+                        checkbox.addEventListener('change', (e) => {
+                            this.params[param] = e.target.checked;
+                        });
+                    }
                 });
                 
                 document.getElementById('clearAll').addEventListener('click', () => {
@@ -561,19 +597,453 @@
                     this.cursor.style.left = this.mouseX + 'px';
                     this.cursor.style.top = this.mouseY + 'px';
                 });
+            }
+            
+            calculateEmissionVector(index, total) {
+                const patterns = {
+                    radial: () => {
+                        const angle = (Math.PI * 2 * index) / total;
+                        return { angle, speed: this.params.velocity };
+                    },
+                    
+                    spiral: () => {
+                        const angle = (this.time * 0.5) + (index * 0.3);
+                        return { angle, speed: this.params.velocity };
+                    },
+                    
+                    fibonacci: () => {
+                        const goldenRatio = (1 + Math.sqrt(5)) / 2;
+                        const angle = index * 2 * Math.PI / goldenRatio;
+                        const radius = Math.sqrt(index) * 0.5;
+                        return { angle, speed: this.params.velocity * (1 + radius * 0.1) };
+                    },
+                    
+                    mandelbrot: () => {
+                        const c = { r: -0.7269 + Math.sin(this.time * 0.1) * 0.1, 
+                                   i: 0.1889 + Math.cos(this.time * 0.1) * 0.1 };
+                        let z = { r: 0, i: 0 };
+                        for (let i = 0; i < 20; i++) {
+                            const zr = z.r * z.r - z.i * z.i + c.r;
+                            const zi = 2 * z.r * z.i + c.i;
+                            z = { r: zr, i: zi };
+                        }
+                        const angle = Math.atan2(z.i, z.r) + index * 0.1;
+                        return { angle, speed: this.params.velocity };
+                    },
+                    
+                    fractal_tree: () => {
+                        const depth = Math.floor(index % 7);
+                        const branchAngle = Math.PI / 6;
+                        const baseAngle = -Math.PI / 2;
+                        const angle = baseAngle + (Math.random() - 0.5) * branchAngle * Math.pow(0.7, depth);
+                        return { angle, speed: this.params.velocity * Math.pow(0.8, depth) };
+                    },
+                    
+                    chaos_attractor: () => {
+                        // Lorenz attractor projection
+                        const sigma = 10, rho = 28, beta = 8/3;
+                        const dt = 0.01;
+                        const x = Math.sin(this.time * 0.1 + index * 0.1) * 10;
+                        const y = Math.cos(this.time * 0.1 + index * 0.1) * 10;
+                        const angle = Math.atan2(y, x) + this.time * 0.5;
+                        return { angle, speed: this.params.velocity };
+                    },
+                    
+                    fourier: () => {
+                        let x = 0, y = 0;
+                        for (let n = 1; n <= 5; n++) {
+                            const r = 50 / n;
+                            const freq = n * this.time * 0.1 + index * 0.2;
+                            x += r * Math.cos(freq);
+                            y += r * Math.sin(freq);
+                        }
+                        const angle = Math.atan2(y, x);
+                        return { angle, speed: this.params.velocity };
+                    },
+                    
+                    parametric: () => {
+                        const t = this.time * 0.1 + index * 0.1;
+                        const x = Math.cos(3 * t) * Math.cos(t);
+                        const y = Math.cos(3 * t) * Math.sin(t);
+                        const angle = Math.atan2(y, x);
+                        return { angle, speed: this.params.velocity };
+                    },
+                    
+                    cellular: () => {
+                        // Rule 30 cellular automaton pattern
+                        const rule = index % 256;
+                        const bit = (rule >> (index % 8)) & 1;
+                        const angle = bit * Math.PI + this.time * 0.1;
+                        return { angle, speed: this.params.velocity };
+                    },
+                    
+                    voronoi: () => {
+                        // Voronoi cell-based emission
+                        const cellX = Math.floor(this.mouseX / 100) * 100 + 50;
+                        const cellY = Math.floor(this.mouseY / 100) * 100 + 50;
+                        const angle = Math.atan2(cellY - this.mouseY, cellX - this.mouseX) + Math.random() * 0.5;
+                        return { angle, speed: this.params.velocity };
+                    }
+                };
                 
-                document.addEventListener('mouseleave', () => {
-                    this.cursor.style.opacity = '0';
+                return patterns[this.params.pattern]() || patterns.spiral();
+            }
+            
+            spawnParticle() {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = this.mouseX + 'px';
+                particle.style.top = this.mouseY + 'px';
+                
+                // Quantum uncertainty in position
+                if (this.params.quantumMode) {
+                    const uncertainty = 20; // Heisenberg uncertainty
+                    particle.style.left = (this.mouseX + (Math.random() - 0.5) * uncertainty) + 'px';
+                    particle.style.top = (this.mouseY + (Math.random() - 0.5) * uncertainty) + 'px';
+                }
+                
+                // Temperature-based color
+                const temp = this.params.temperature;
+                const hue = Math.max(0, Math.min(360, 240 - (temp / 500) * 240)); // Blue to red
+                particle.style.filter = `hue-rotate(${hue}deg)`;
+                
+                document.body.appendChild(particle);
+                
+                const emission = this.calculateEmissionVector(this.totalSpawned, 8);
+                
+                // Add thermal motion
+                const thermalVelocity = Math.sqrt(this.params.temperature / this.params.mass) * 0.01;
+                
+                const particleData = {
+                    element: particle,
+                    x: parseFloat(particle.style.left),
+                    y: parseFloat(particle.style.top),
+                    vx: Math.cos(emission.angle) * emission.speed + (Math.random() - 0.5) * thermalVelocity,
+                    vy: Math.sin(emission.angle) * emission.speed + (Math.random() - 0.5) * thermalVelocity,
+                    mass: this.params.mass,
+                    charge: Math.random() > 0.5 ? 1 : -1, // Random charge for electromagnetic interactions
+                    life: this.params.lifetime,
+                    startTime: performance.now(),
+                    energy: 0.5 * this.params.mass * Math.pow(emission.speed, 2)
+                };
+                
+                this.particles.push(particleData);
+                this.totalSpawned++;
+            }
+            
+            applyForceField(particle) {
+                const dx = particle.x - this.mouseX;
+                const dy = particle.y - this.mouseY;
+                const r = Math.sqrt(dx * dx + dy * dy);
+                
+                if (r === 0) return;
+                
+                const force = this.params.fieldStrength * 0.1;
+                
+                switch (this.params.fieldType) {
+                    case 'gravitational':
+                        // F = GMm/r²
+                        const gravForce = force * particle.mass / (r * r);
+                        particle.vx -= (dx / r) * gravForce;
+                        particle.vy -= (dy / r) * gravForce;
+                        break;
+                        
+                    case 'magnetic':
+                        // Lorentz force F = q(v × B)
+                        const B = force;
+                        particle.vx += particle.charge * particle.vy * B * 0.01;
+                        particle.vy -= particle.charge * particle.vx * B * 0.01;
+                        break;
+                        
+                    case 'electric':
+                        // Coulomb force F = kqQ/r²
+                        const elecForce = force * particle.charge / (r * r);
+                        particle.vx += (dx / r) * elecForce;
+                        particle.vy += (dy / r) * elecForce;
+                        break;
+                        
+                    case 'vortex':
+                        // Circular force field
+                        const vortexForce = force / r;
+                        particle.vx += -dy / r * vortexForce;
+                        particle.vy += dx / r * vortexForce;
+                        break;
+                        
+                    case 'wave':
+                        // Sinusoidal wave field
+                        const waveForce = force * Math.sin(this.params.waveFrequency * this.time + r * 0.1);
+                        particle.vx += (dx / r) * waveForce;
+                        particle.vy += (dy / r) * waveForce;
+                        break;
+                        
+                    case 'turbulence':
+                        // Perlin noise-like turbulence
+                        const turbForce = force * 0.1;
+                        particle.vx += (Math.sin(particle.x * 0.01 + this.time) * turbForce);
+                        particle.vy += (Math.cos(particle.y * 0.01 + this.time) * turbForce);
+                        break;
+                }
+            }
+            
+            applyInteractions(particle, index) {
+                if (this.params.interactionType === 'none') return;
+                
+                for (let i = 0; i < this.particles.length; i++) {
+                    if (i === index) continue;
+                    
+                    const other = this.particles[i];
+                    const dx = other.x - particle.x;
+                    const dy = other.y - particle.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance === 0) continue;
+                    
+                    switch (this.params.interactionType) {
+                        case 'collision':
+                            // Elastic collision
+                            if (distance < 40) {
+                                const overlap = 40 - distance;
+                                const separationX = (dx / distance) * overlap * 0.5;
+                                const separationY = (dy / distance) * overlap * 0.5;
+                                
+                                particle.x -= separationX;
+                                particle.y -= separationY;
+                                other.x += separationX;
+                                other.y += separationY;
+                                
+                                // Velocity exchange (simplified)
+                                const tempVx = particle.vx;
+                                const tempVy = particle.vy;
+                                particle.vx = other.vx * 0.8;
+                                particle.vy = other.vy * 0.8;
+                                other.vx = tempVx * 0.8;
+                                other.vy = tempVy * 0.8;
+                            }
+                            break;
+                            
+                        case 'flocking':
+                            // Boids algorithm
+                            const neighborRadius = 80;
+                            if (distance < neighborRadius) {
+                                const strength = 1 - (distance / neighborRadius);
+                                
+                                // Cohesion - move toward average position
+                                particle.vx += dx * this.params.cohesion * 0.001 * strength;
+                                particle.vy += dy * this.params.cohesion * 0.001 * strength;
+                                
+                                // Separation - avoid crowding
+                                if (distance < 50) {
+                                    particle.vx -= dx * this.params.separation * 0.01 / distance;
+                                    particle.vy -= dy * this.params.separation * 0.01 / distance;
+                                }
+                                
+                                // Alignment - match velocity
+                                particle.vx += (other.vx - particle.vx) * 0.005 * strength;
+                                particle.vy += (other.vy - particle.vy) * 0.005 * strength;
+                            }
+                            break;
+                            
+                        case 'coulomb':
+                            // Coulomb's law F = k*q1*q2/r²
+                            const coulombForce = this.params.fieldStrength * particle.charge * other.charge / (distance * distance) * 0.1;
+                            particle.vx -= (dx / distance) * coulombForce;
+                            particle.vy -= (dy / distance) * coulombForce;
+                            break;
+                            
+                        case 'van_der_waals':
+                            // Van der Waals force (attractive at distance, repulsive up close)
+                            const sigma = 30; // Equilibrium distance
+                            const epsilon = this.params.fieldStrength; // Interaction strength
+                            
+                            if (distance < sigma * 3) {
+                                const r_ratio = sigma / distance;
+                                const force = 24 * epsilon * (2 * Math.pow(r_ratio, 12) - Math.pow(r_ratio, 6)) / distance;
+                                
+                                particle.vx -= (dx / distance) * force * 0.001;
+                                particle.vy -= (dy / distance) * force * 0.001;
+                            }
+                            break;
+                    }
+                }
+            }
+            
+            updateParticles() {
+                const now = performance.now();
+                let totalVelocity = 0;
+                let totalEnergy = 0;
+                let totalKineticEnergy = 0;
+                
+                this.particles = this.particles.filter((particle, index) => {
+                    const age = now - particle.startTime;
+                    const progress = age / particle.life;
+                    
+                    if (progress >= 1) {
+                        if (particle.element.parentNode) {
+                            particle.element.parentNode.removeChild(particle.element);
+                        }
+                        return false;
+                    }
+                    
+                    // Store previous position for trail effect
+                    const prevX = particle.x;
+                    const prevY = particle.y;
+                    
+                    // Apply force fields
+                    this.applyForceField(particle);
+                    
+                    // Apply particle interactions
+                    this.applyInteractions(particle, index);
+                    
+                    // Apply gravity
+                    particle.vy += this.params.gravity;
+                    
+                    // Apply drag (air resistance)
+                    const dragForce = this.params.drag;
+                    particle.vx *= (1 - dragForce);
+                    particle.vy *= (1 - dragForce);
+                    
+                    // Quantum tunneling effect
+                    if (this.params.quantumMode && Math.random() < 0.001) {
+                        particle.x += (Math.random() - 0.5) * 100;
+                        particle.y += (Math.random() - 0.5) * 100;
+                    }
+                    
+                    // Update position
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    
+                    // Boundary conditions
+                    const margin = 20;
+                    if (particle.x < margin || particle.x > window.innerWidth - margin) {
+                        particle.vx *= -0.8;
+                        particle.x = Math.max(margin, Math.min(window.innerWidth - margin, particle.x));
+                    }
+                    if (particle.y < margin || particle.y > window.innerHeight - margin) {
+                        particle.vy *= -0.8;
+                        particle.y = Math.max(margin, Math.min(window.innerHeight - margin, particle.y));
+                    }
+                    
+                    // Energy conservation
+                    if (this.params.conserveEnergy) {
+                        const currentKE = 0.5 * particle.mass * (particle.vx * particle.vx + particle.vy * particle.vy);
+                        if (currentKE > particle.energy * 1.1) { // Allow 10% tolerance
+                            const scale = Math.sqrt(particle.energy / (0.5 * particle.mass)) / Math.sqrt(particle.vx * particle.vx + particle.vy * particle.vy);
+                            particle.vx *= scale;
+                            particle.vy *= scale;
+                        }
+                    }
+                    
+                    // Update visual properties
+                    const opacity = 1 - (progress * 0.7);
+                    const scale = 1 - (progress * 0.2);
+                    
+                    particle.element.style.left = particle.x + 'px';
+                    particle.element.style.top = particle.y + 'px';
+                    particle.element.style.opacity = opacity;
+                    particle.element.style.transform = `scale(${scale})`;
+                    
+                    // Trail effect
+                    if (this.params.showTrails) {
+                        const trail = document.createElement('div');
+                        trail.style.position = 'fixed';
+                        trail.style.left = prevX + 'px';
+                        trail.style.top = prevY + 'px';
+                        trail.style.width = '2px';
+                        trail.style.height = '2px';
+                        trail.style.background = particle.element.style.background;
+                        trail.style.opacity = '0.3';
+                        trail.style.pointerEvents = 'none';
+                        trail.style.zIndex = '999';
+                        document.body.appendChild(trail);
+                        
+                        setTimeout(() => {
+                            if (trail.parentNode) trail.parentNode.removeChild(trail);
+                        }, 500);
+                    }
+                    
+                    // Calculate statistics
+                    const velocity = Math.sqrt(particle.vx * particle.vx + particle.vy * particle.vy);
+                    totalVelocity += velocity;
+                    
+                    const kineticEnergy = 0.5 * particle.mass * velocity * velocity;
+                    totalKineticEnergy += kineticEnergy;
+                    totalEnergy += kineticEnergy; // Could add potential energy here
+                    
+                    return true;
                 });
                 
-                document.addEventListener('mouseenter', () => {
-                    this.cursor.style.opacity = '1';
-                });
-
-                // Show cursor when over dashboard
-                this.dashboard.addEventListener('mouseenter', () => {
-                    this.cursor.style.opacity = '1';
-                });
+                this.avgVelocity = this.particles.length > 0 ? totalVelocity / this.particles.length : 0;
+                this.totalEnergy = totalEnergy;
+                this.systemTemperature = this.particles.length > 0 ? (2 * totalKineticEnergy) / (3 * this.particles.length * 1.38e-23) : 0; // Boltzmann relation
+            }
+            
+            drawForceField() {
+                if (!this.params.showField) {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    return;
+                }
+                
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                this.ctx.lineWidth = 1;
+                
+                const step = 40;
+                for (let x = 0; x < this.canvas.width; x += step) {
+                    for (let y = 0; y < this.canvas.height; y += step) {
+                        const dx = x - this.mouseX;
+                        const dy = y - this.mouseY;
+                        const r = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (r === 0) continue;
+                        
+                        let fx = 0, fy = 0;
+                        const force = this.params.fieldStrength * 0.1;
+                        
+                        switch (this.params.fieldType) {
+                            case 'gravitational':
+                                fx = -(dx / r) * force / (r * r) * 1000;
+                                fy = -(dy / r) * force / (r * r) * 1000;
+                                break;
+                            case 'electric':
+                                fx = (dx / r) * force / (r * r) * 1000;
+                                fy = (dy / r) * force / (r * r) * 1000;
+                                break;
+                            case 'vortex':
+                                fx = -dy / r * force * 20;
+                                fy = dx / r * force * 20;
+                                break;
+                            case 'wave':
+                                const waveForce = force * Math.sin(this.params.waveFrequency * this.time + r * 0.1) * 20;
+                                fx = (dx / r) * waveForce;
+                                fy = (dy / r) * waveForce;
+                                break;
+                        }
+                        
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x, y);
+                        this.ctx.lineTo(x + fx, y + fy);
+                        this.ctx.stroke();
+                        
+                        // Draw arrow head
+                        const angle = Math.atan2(fy, fx);
+                        const arrowLength = 5;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x + fx, y + fy);
+                        this.ctx.lineTo(x + fx - arrowLength * Math.cos(angle - Math.PI/6), 
+                                       y + fy - arrowLength * Math.sin(angle - Math.PI/6));
+                        this.ctx.moveTo(x + fx, y + fy);
+                        this.ctx.lineTo(x + fx - arrowLength * Math.cos(angle + Math.PI/6), 
+                                       y + fy - arrowLength * Math.sin(angle + Math.PI/6));
+                        this.ctx.stroke();
+                    }
+                }
+            }
+            
+            updateStats() {
+                document.getElementById('particleCount').textContent = this.particles.length;
+                document.getElementById('totalEnergy').textContent = this.totalEnergy.toFixed(1) + ' J';
+                document.getElementById('avgVelocity').textContent = this.avgVelocity.toFixed(1) + ' m/s';
+                document.getElementById('sysTemp').textContent = Math.max(0, this.systemTemperature / 1e20).toFixed(1) + ' K';
             }
             
             shouldSpawn() {
@@ -587,240 +1057,6 @@
                 return false;
             }
             
-            calculateEmissionVector(index, total) {
-                const patterns = {
-                    radial: () => {
-                        const angle = (Math.PI * 2 * index) / total;
-                        return { angle, speed: this.params.velocity };
-                    },
-                    
-                    spiral: () => {
-                        const spiralRate = 0.5;
-                        const angle = (this.time * spiralRate) + (index * 0.3);
-                        return { angle, speed: this.params.velocity };
-                    },
-                    
-                    cone: () => {
-                        const spreadRad = (this.params.spread * Math.PI) / 180;
-                        const baseAngle = -Math.PI / 2; // Point upward
-                        const angle = baseAngle + (Math.random() - 0.5) * spreadRad;
-                        return { angle, speed: this.params.velocity };
-                    },
-                    
-                    grid: () => {
-                        const gridSize = 3;
-                        const row = Math.floor(index / gridSize);
-                        const col = index % gridSize;
-                        const angle = Math.atan2(row - 1, col - 1);
-                        return { angle, speed: this.params.velocity };
-                    },
-                    
-                    wave: () => {
-                        const waveFreq = 0.02;
-                        const angle = Math.sin(this.time * waveFreq + index) * Math.PI;
-                        return { angle, speed: this.params.velocity };
-                    },
-                    
-                    fibonacci: () => {
-                        const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // Golden angle in radians
-                        const angle = index * goldenAngle;
-                        const radius = Math.sqrt(index) * 0.5;
-                        return { angle, speed: this.params.velocity * (1 + radius * 0.1) };
-                    },
-                    
-                    rose: () => {
-                        const k = 5; // Number of petals
-                        const angle = this.time * 0.1 + index * 0.2;
-                        const r = Math.cos(k * angle);
-                        return { angle: angle + r, speed: this.params.velocity };
-                    },
-                    
-                    lissajous: () => {
-                        const a = 3, b = 2; // Frequency ratios
-                        const t = this.time * 0.01 + index * 0.1;
-                        const x = Math.sin(a * t);
-                        const y = Math.cos(b * t);
-                        const angle = Math.atan2(y, x);
-                        return { angle, speed: this.params.velocity };
-                    },
-                    
-                    polar: () => {
-                        const t = this.time * 0.05 + index * 0.15;
-                        const r = Math.sin(3 * t) * Math.cos(2 * t);
-                        const angle = t + r;
-                        return { angle, speed: this.params.velocity * (1 + Math.abs(r)) };
-                    }
-                };
-                
-                return patterns[this.params.pattern]();
-            }
-            
-            spawnParticle() {
-                const particle = document.createElement('div');
-                particle.className = 'cat-particle';
-                particle.style.left = this.mouseX + 'px';
-                particle.style.top = this.mouseY + 'px';
-                
-                // Size variation
-                const sizeVar = this.params.sizeVariation / 100;
-                const baseSize = 60;
-                const size = baseSize * (1 + (Math.random() - 0.5) * sizeVar);
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                
-                // Color cycling
-                if (this.params.colorCycle > 0) {
-                    const hue = (this.time * this.params.colorCycle * 50) % 360;
-                    particle.style.filter = `hue-rotate(${hue}deg) saturate(1.2)`;
-                }
-                
-                // Trail mode
-                if (this.params.trails) {
-                    particle.classList.add('trail-mode');
-                }
-                
-                document.body.appendChild(particle);
-                
-                const emission = this.calculateEmissionVector(this.totalSpawned, 8);
-                const particleData = {
-                    element: particle,
-                    vx: Math.cos(emission.angle) * emission.speed,
-                    vy: Math.sin(emission.angle) * emission.speed,
-                    life: this.params.lifetime,
-                    startTime: performance.now(),
-                    rotation: Math.random() * 360,
-                    size: size
-                };
-                
-                this.particles.push(particleData);
-                this.totalSpawned++;
-            }
-            
-            updateParticles() {
-                const now = performance.now();
-                let totalVelocity = 0;
-                
-                this.particles = this.particles.filter(particle => {
-                    const age = now - particle.startTime;
-                    const progress = age / particle.life;
-                    
-                    if (progress >= 1) {
-                        if (particle.element.parentNode) {
-                            particle.element.parentNode.removeChild(particle.element);
-                        }
-                        return false;
-                    }
-                    
-                    // Current position
-                    const currentX = parseFloat(particle.element.style.left);
-                    const currentY = parseFloat(particle.element.style.top);
-                    
-                    // Apply attraction forces
-                    this.applyForces(particle, currentX, currentY);
-                    
-                    // Update position
-                    const newX = currentX + particle.vx;
-                    const newY = currentY + particle.vy;
-                    
-                    // Bounce detection
-                    if (this.params.bounceMode) {
-                        const size = particle.size || 60;
-                        if (newX <= size/2 || newX >= window.innerWidth - size/2) {
-                            particle.vx *= -0.8; // Energy loss on bounce
-                        }
-                        if (newY <= size/2 || newY >= window.innerHeight - size/2) {
-                            particle.vy *= -0.8;
-                        }
-                    }
-                    
-                    particle.element.style.left = Math.max(0, Math.min(window.innerWidth, newX)) + 'px';
-                    particle.element.style.top = Math.max(0, Math.min(window.innerHeight, newY)) + 'px';
-                    
-                    // Apply gravity
-                    particle.vy += this.params.gravity;
-                    
-                    // Apply air resistance
-                    particle.vx *= 0.999;
-                    particle.vy *= 0.999;
-                    
-                    // Calculate velocity for stats
-                    const velocity = Math.sqrt(particle.vx * particle.vx + particle.vy * particle.vy);
-                    totalVelocity += velocity;
-                    
-                    // Update visual properties
-                    const opacity = 1 - (progress * 0.8);
-                    const scale = 1 - (progress * 0.3);
-                    const rotation = particle.rotation + (age * 0.1);
-                    
-                    particle.element.style.opacity = opacity;
-                    particle.element.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
-                    
-                    return true;
-                });
-                
-                this.avgVelocity = this.particles.length > 0 ? totalVelocity / this.particles.length : 0;
-            }
-            
-            applyForces(particle, x, y) {
-                const force = this.params.forceStrength * 0.01;
-                
-                switch (this.params.attractionMode) {
-                    case 'center':
-                        const centerX = window.innerWidth / 2;
-                        const centerY = window.innerHeight / 2;
-                        const toCenterX = centerX - x;
-                        const toCenterY = centerY - y;
-                        const centerDist = Math.sqrt(toCenterX * toCenterX + toCenterY * toCenterY);
-                        if (centerDist > 0) {
-                            particle.vx += (toCenterX / centerDist) * force;
-                            particle.vy += (toCenterY / centerDist) * force;
-                        }
-                        break;
-                        
-                    case 'mouse':
-                        const toMouseX = this.mouseX - x;
-                        const toMouseY = this.mouseY - y;
-                        const mouseDist = Math.sqrt(toMouseX * toMouseX + toMouseY * toMouseY);
-                        if (mouseDist > 0 && mouseDist < 200) {
-                            const forceScale = (200 - mouseDist) / 200;
-                            particle.vx += (toMouseX / mouseDist) * force * forceScale;
-                            particle.vy += (toMouseY / mouseDist) * force * forceScale;
-                        }
-                        break;
-                        
-                    case 'repulsion':
-                        const fromMouseX = x - this.mouseX;
-                        const fromMouseY = y - this.mouseY;
-                        const repulseDist = Math.sqrt(fromMouseX * fromMouseX + fromMouseY * fromMouseY);
-                        if (repulseDist > 0 && repulseDist < 150) {
-                            const forceScale = (150 - repulseDist) / 150;
-                            particle.vx += (fromMouseX / repulseDist) * force * forceScale * 2;
-                            particle.vy += (fromMouseY / repulseDist) * force * forceScale * 2;
-                        }
-                        break;
-                        
-                    case 'orbit':
-                        const orbitalX = this.mouseX - x;
-                        const orbitalY = this.mouseY - y;
-                        const orbitalDist = Math.sqrt(orbitalX * orbitalX + orbitalY * orbitalY);
-                        if (orbitalDist > 0) {
-                            // Tangential force for orbital motion
-                            particle.vx += (-orbitalY / orbitalDist) * force;
-                            particle.vy += (orbitalX / orbitalDist) * force;
-                            // Small centripetal force
-                            particle.vx += (orbitalX / orbitalDist) * force * 0.1;
-                            particle.vy += (orbitalY / orbitalDist) * force * 0.1;
-                        }
-                        break;
-                }
-            }
-            
-            updateStats() {
-                document.getElementById('particleCount').textContent = this.particles.length;
-                document.getElementById('totalSpawned').textContent = this.totalSpawned;
-                document.getElementById('avgVelocity').textContent = this.avgVelocity.toFixed(1);
-            }
-            
             clearAllParticles() {
                 this.particles.forEach(particle => {
                     if (particle.element.parentNode) {
@@ -829,16 +1065,22 @@
                 });
                 this.particles = [];
                 this.totalSpawned = 0;
+                
+                // Clear trails
+                document.querySelectorAll('[style*="width: 2px"]').forEach(trail => {
+                    if (trail.parentNode) trail.parentNode.removeChild(trail);
+                });
             }
             
             animate() {
-                this.time = performance.now() * 0.001; // Convert to seconds
+                this.time = performance.now() * 0.001;
                 
                 if (this.shouldSpawn()) {
                     this.spawnParticle();
                 }
                 
                 this.updateParticles();
+                this.drawForceField();
                 this.updateStats();
                 
                 requestAnimationFrame(() => this.animate());
@@ -847,26 +1089,61 @@
 
         // Initialize the particle system when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            new ParticleSystem();
+            new AdvancedParticleSystem();
         });
 
-        // Mathematical utility functions
+        // Mathematical utility functions for advanced calculations
         const MathUtils = {
             lerp: (a, b, t) => a + (b - a) * t,
-            
             clamp: (value, min, max) => Math.min(Math.max(value, min), max),
-            
             map: (value, inMin, inMax, outMin, outMax) => {
                 return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
             },
             
-            degToRad: (degrees) => degrees * Math.PI / 180,
+            // Complex number operations for fractals
+            complexAdd: (a, b) => ({ r: a.r + b.r, i: a.i + b.i }),
+            complexMult: (a, b) => ({ 
+                r: a.r * b.r - a.i * b.i, 
+                i: a.r * b.i + a.i * b.r 
+            }),
+            complexMagnitude: (z) => Math.sqrt(z.r * z.r + z.i * z.i),
             
-            radToDeg: (radians) => radians * 180 / Math.PI,
+            // Noise function for procedural patterns
+            noise: (x, y) => {
+                const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+                return n - Math.floor(n);
+            },
             
-            distance: (x1, y1, x2, y2) => {
-                return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-            }
+            // Perlin noise approximation
+            perlinNoise: (x, y) => {
+                const X = Math.floor(x) & 255;
+                const Y = Math.floor(y) & 255;
+                x -= Math.floor(x);
+                y -= Math.floor(y);
+                const u = MathUtils.fade(x);
+                const v = MathUtils.fade(y);
+                
+                const A = MathUtils.p[X] + Y;
+                const B = MathUtils.p[X + 1] + Y;
+                
+                return MathUtils.lerp(v, 
+                    MathUtils.lerp(u, MathUtils.grad(MathUtils.p[A], x, y), 
+                                     MathUtils.grad(MathUtils.p[B], x - 1, y)),
+                    MathUtils.lerp(u, MathUtils.grad(MathUtils.p[A + 1], x, y - 1), 
+                                     MathUtils.grad(MathUtils.p[B + 1], x - 1, y - 1)));
+            },
+            
+            fade: (t) => t * t * t * (t * (t * 6 - 15) + 10),
+            
+            grad: (hash, x, y) => {
+                const h = hash & 15;
+                const u = h < 8 ? x : y;
+                const v = h < 4 ? y : h === 12 || h === 14 ? x : 0;
+                return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+            },
+            
+            // Permutation table for Perlin noise
+            p: [151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,18,169,200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,98,108,110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,12,191,179,162,241,81,51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180].concat([151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,18,169,200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,98,108,110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,12,191,179,162,241,81,51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180])
         };
     </script>
 </body>
