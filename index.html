@@ -335,6 +335,11 @@
         <h3>PHYSICS LAB</h3>
         <button class="dashboard-toggle"></button>
         
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <button id="randomizeAll" style="flex: 1; padding: 6px; background: #fff; border: 2px solid #000; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.1s;">Randomize All</button>
+            <a href="duckmusic.html" style="flex: 1; padding: 6px; background: #fff; border: 2px solid #000; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.1s; text-decoration: none; color: #000; text-align: center;">Duck Music</a>
+        </div>
+        
         <div class="section-header">Emission Patterns</div>
         <div class="control-group">
             <label for="frequency">Spawn Rate</label>
@@ -596,6 +601,61 @@
                     this.mouseY = e.clientY;
                     this.cursor.style.left = this.mouseX + 'px';
                     this.cursor.style.top = this.mouseY + 'px';
+                });
+
+                // Add keyboard controls with specific key mappings
+                const keyMappings = {
+                    'q': 'frequency',      // Spawn Rate
+                    'w': 'velocity',       // Initial Velocity
+                    'e': 'mass',           // Particle Mass
+                    'r': 'drag',           // Air Resistance
+                    't': 'gravity',        // Gravity Field
+                    'y': 'fieldStrength',  // Field Strength
+                    'u': 'waveFrequency',  // Wave Frequency
+                    'i': 'cohesion',       // Cohesion
+                    'o': 'separation',     // Separation
+                    'p': 'temperature',    // Temperature
+                    'a': 'lifetime'        // Particle Lifetime
+                };
+
+                let activeKeys = new Set();
+                let adjustmentInterval;
+
+                document.addEventListener('keydown', (e) => {
+                    const key = e.key.toLowerCase();
+                    if (keyMappings[key] && !activeKeys.has(key)) {
+                        activeKeys.add(key);
+                        if (activeKeys.size === 1) { // Start interval only on first key
+                            adjustmentInterval = setInterval(() => {
+                                activeKeys.forEach(key => {
+                                    const sliderId = keyMappings[key];
+                                    const slider = document.getElementById(sliderId);
+                                    if (slider) {
+                                        const min = parseFloat(slider.min);
+                                        const max = parseFloat(slider.max);
+                                        const step = parseFloat(slider.step) || 1;
+                                        const currentValue = parseFloat(slider.value);
+                                        
+                                        // Increase or decrease value based on Shift key
+                                        const direction = e.shiftKey ? -1 : 1;
+                                        const newValue = Math.max(min, Math.min(max, currentValue + (step * direction)));
+                                        slider.value = newValue;
+                                        slider.dispatchEvent(new Event('input'));
+                                    }
+                                });
+                            }, 50);
+                        }
+                    }
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    const key = e.key.toLowerCase();
+                    if (keyMappings[key]) {
+                        activeKeys.delete(key);
+                        if (activeKeys.size === 0) { // Stop interval when no keys are held
+                            clearInterval(adjustmentInterval);
+                        }
+                    }
                 });
             }
             
