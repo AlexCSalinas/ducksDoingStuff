@@ -15,10 +15,63 @@
 
         body {
             height: 100vh;
-            background: white;
+            background: #ffffff;
             font-family: 'Space Mono', monospace;
             overflow: hidden;
             cursor: none;
+            transition: background-color 0.5s ease;
+            position: relative;
+        }
+
+        /* Dynamic background overlay */
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.1;
+            transition: all 0.5s ease;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.1) 100%);
+        }
+
+        /* Grid pattern overlay */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.05;
+            background-image: 
+                linear-gradient(0deg, rgba(0,0,0,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid-drift 20s linear infinite;
+        }
+
+        @keyframes grid-drift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Energy pulse effect */
+        .energy-pulse {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 100px;
+            height: 100px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0;
+            transition: all 0.3s ease;
         }
 
         .nav-button {
@@ -57,6 +110,17 @@
             padding: 10px 20px;
             border: 2px solid #000;
             box-shadow: 4px 4px 0 #000;
+            transition: all 0.3s ease;
+        }
+
+        .page-title.high-energy {
+            animation: title-shake 0.1s infinite;
+        }
+
+        @keyframes title-shake {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            25% { transform: translateX(-50%) translateY(-1px); }
+            75% { transform: translateX(-50%) translateY(1px); }
         }
 
         .nav-button:hover {
@@ -80,7 +144,7 @@
             z-index: 10000;
             font-size: 10px;
             box-shadow: 8px 8px 0 #000;
-            transition: transform 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out;
             max-height: calc(100vh - 40px);
             overflow-y: auto;
         }
@@ -146,6 +210,7 @@
             background: #000;
             outline: none;
             margin: 4px 0;
+            position: relative;
         }
 
         .control-group input[type="range"]::-webkit-slider-thumb {
@@ -156,6 +221,12 @@
             background: #000;
             cursor: pointer;
             border-radius: 0;
+            transition: all 0.1s;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb:hover {
+            width: 14px;
+            height: 14px;
         }
 
         .control-group select {
@@ -167,6 +238,11 @@
             border: 1px solid #000;
             cursor: pointer;
             text-transform: uppercase;
+            transition: all 0.1s;
+        }
+
+        .control-group select:hover {
+            background: #f0f0f0;
         }
 
         .control-group span {
@@ -199,6 +275,7 @@
             background: #fff;
             border: 2px solid #000;
             cursor: pointer;
+            transition: all 0.1s;
         }
 
         .control-group input[type="checkbox"]:checked {
@@ -217,6 +294,16 @@
             padding: 6px;
             background: #000;
             color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .stats.high-energy {
+            animation: stats-pulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes stats-pulse {
+            0%, 100% { background: #000; }
+            50% { background: #333; }
         }
 
         .stats div {
@@ -260,6 +347,7 @@
             transform: translate(-50%, -50%);
             mix-blend-mode: difference;
             opacity: 1;
+            transition: all 0.1s ease;
         }
 
         .custom-cursor::after {
@@ -272,6 +360,12 @@
             top: 50%;
             transform: translate(-50%, -50%);
             border-radius: 50%;
+            transition: all 0.1s ease;
+        }
+
+        .custom-cursor.active::after {
+            width: 8px;
+            height: 8px;
         }
 
         .particle {
@@ -302,6 +396,7 @@
             padding: 4px;
             background: #f0f0f0;
             text-align: center;
+            transition: all 0.3s ease;
         }
 
         /* Canvas for field visualization */
@@ -312,6 +407,7 @@
             pointer-events: none;
             z-index: 1;
             opacity: 0.3;
+            transition: opacity 0.3s ease;
         }
 
         ::-webkit-scrollbar {
@@ -325,19 +421,94 @@
         ::-webkit-scrollbar-thumb {
             background: #000;
         }
+
+        /* Dynamic color themes based on temperature */
+        body.cold-theme {
+            background: #e6f2ff;
+        }
+        body.cold-theme .background-overlay {
+            background: radial-gradient(circle at 50% 50%, rgba(0, 100, 255, 0.1) 0%, transparent 70%);
+        }
+
+        body.neutral-theme {
+            background: #ffffff;
+        }
+
+        body.warm-theme {
+            background: #fff5e6;
+        }
+        body.warm-theme .background-overlay {
+            background: radial-gradient(circle at 50% 50%, rgba(255, 150, 0, 0.1) 0%, transparent 70%);
+        }
+
+        body.hot-theme {
+            background: #ffe6e6;
+        }
+        body.hot-theme .background-overlay {
+            background: radial-gradient(circle at 50% 50%, rgba(255, 0, 0, 0.1) 0%, transparent 70%);
+        }
+
+        body.plasma-theme {
+            background: #f0e6ff;
+        }
+        body.plasma-theme .background-overlay {
+            background: radial-gradient(circle at 50% 50%, rgba(150, 0, 255, 0.1) 0%, transparent 70%);
+        }
+
+        /* Pattern-specific visual effects */
+        body.mandelbrot-active .grid-overlay {
+            background-image: 
+                repeating-conic-gradient(from 0deg at 50% 50%, #000 0deg, transparent 10deg, transparent 20deg);
+            opacity: 0.02;
+        }
+
+        body.chaos-active .background-overlay {
+            animation: chaos-shift 3s ease-in-out infinite;
+        }
+
+        @keyframes chaos-shift {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        /* Field type visual indicators */
+        body.vortex-field #fieldCanvas {
+            animation: vortex-spin 10s linear infinite;
+        }
+
+        @keyframes vortex-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        body.wave-field .background-overlay {
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 10px,
+                rgba(0,0,0,0.05) 10px,
+                rgba(0,0,0,0.05) 20px
+            );
+            animation: wave-motion 2s linear infinite;
+        }
+
+        @keyframes wave-motion {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 0; }
+        }
     </style>
 </head>
-<body>
+<body class="neutral-theme">
+    <div class="background-overlay"></div>
+    <div class="grid-overlay"></div>
+    <div class="energy-pulse"></div>
+    
     <div class="page-title">Enhanced Duck Physics Lab</div>
     <canvas id="fieldCanvas"></canvas>
     
     <div class="dashboard">
         <h3>PHYSICS LAB</h3>
         <button class="dashboard-toggle"></button>
-        
-        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <!-- <a href="duckmusic.html" style="flex: 1; padding: 6px; background: #fff; border: 2px solid #000; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.1s; text-decoration: none; color: #000; text-align: center;">Duck Music</a> -->
-        </div>
         
         <div class="section-header">Emission Patterns</div>
         <div class="control-group">
@@ -521,6 +692,10 @@
                 this.cursor = document.querySelector('.custom-cursor');
                 this.dashboard = document.querySelector('.dashboard');
                 this.dashboardToggle = document.querySelector('.dashboard-toggle');
+                this.energyPulse = document.querySelector('.energy-pulse');
+                this.pageTitle = document.querySelector('.page-title');
+                this.statsElement = document.querySelector('.stats');
+                
                 this.initControls();
                 this.bindEvents();
                 this.animate();
@@ -534,6 +709,43 @@
                     this.canvas.width = window.innerWidth;
                     this.canvas.height = window.innerHeight;
                 });
+            }
+            
+            updateTheme() {
+                const temp = this.params.temperature;
+                const body = document.body;
+                
+                // Remove all theme classes
+                body.classList.remove('cold-theme', 'neutral-theme', 'warm-theme', 'hot-theme', 'plasma-theme');
+                
+                // Apply theme based on temperature
+                if (temp < 50) {
+                    body.classList.add('cold-theme');
+                } else if (temp < 150) {
+                    body.classList.add('neutral-theme');
+                } else if (temp < 250) {
+                    body.classList.add('warm-theme');
+                } else if (temp < 400) {
+                    body.classList.add('hot-theme');
+                } else {
+                    body.classList.add('plasma-theme');
+                }
+                
+                // Pattern-specific effects
+                body.classList.remove('mandelbrot-active', 'chaos-active');
+                if (this.params.pattern === 'mandelbrot') {
+                    body.classList.add('mandelbrot-active');
+                } else if (this.params.pattern === 'chaos_attractor') {
+                    body.classList.add('chaos-active');
+                }
+                
+                // Field-specific effects
+                body.classList.remove('vortex-field', 'wave-field');
+                if (this.params.fieldType === 'vortex') {
+                    body.classList.add('vortex-field');
+                } else if (this.params.fieldType === 'wave') {
+                    body.classList.add('wave-field');
+                }
             }
             
             initControls() {
@@ -567,6 +779,11 @@
                             const formatted = config.decimals !== undefined ? 
                                 value.toFixed(config.decimals) : value.toString();
                             display.textContent = formatted + config.suffix;
+                            
+                            // Update theme when temperature changes
+                            if (param === 'temperature') {
+                                this.updateTheme();
+                            }
                         });
                     }
                 });
@@ -576,6 +793,7 @@
                     if (select) {
                         select.addEventListener('change', (e) => {
                             this.params[param] = e.target.value;
+                            this.updateTheme();
                         });
                     }
                 });
@@ -585,12 +803,20 @@
                     if (checkbox) {
                         checkbox.addEventListener('change', (e) => {
                             this.params[param] = e.target.checked;
+                            if (param === 'showField') {
+                                this.canvas.style.opacity = e.target.checked ? '0.3' : '0';
+                            }
                         });
                     }
                 });
                 
                 document.getElementById('clearAll').addEventListener('click', () => {
                     this.clearAllParticles();
+                    // Visual feedback for clear
+                    document.body.style.filter = 'invert(1)';
+                    setTimeout(() => {
+                        document.body.style.filter = 'invert(0)';
+                    }, 100);
                 });
             }
             
@@ -600,6 +826,22 @@
                     this.mouseY = e.clientY;
                     this.cursor.style.left = this.mouseX + 'px';
                     this.cursor.style.top = this.mouseY + 'px';
+                    
+                    // Update energy pulse position
+                    this.energyPulse.style.left = this.mouseX + 'px';
+                    this.energyPulse.style.top = this.mouseY + 'px';
+                });
+
+                document.addEventListener('mousedown', () => {
+                    this.cursor.classList.add('active');
+                    this.energyPulse.style.opacity = '0.1';
+                    this.energyPulse.style.transform = 'translate(-50%, -50%) scale(3)';
+                });
+
+                document.addEventListener('mouseup', () => {
+                    this.cursor.classList.remove('active');
+                    this.energyPulse.style.opacity = '0';
+                    this.energyPulse.style.transform = 'translate(-50%, -50%) scale(1)';
                 });
 
                 // Add keyboard controls with specific key mappings
@@ -764,7 +1006,7 @@
                 // Temperature-based color
                 const temp = this.params.temperature;
                 const hue = Math.max(0, Math.min(360, 240 - (temp / 500) * 240)); // Blue to red
-                particle.style.filter = `hue-rotate(${hue}deg)`;
+                particle.style.filter = `hue-rotate(${hue}deg) brightness(${1 + temp/1000})`;
                 
                 document.body.appendChild(particle);
                 
@@ -1009,7 +1251,7 @@
                         trail.style.top = prevY + 'px';
                         trail.style.width = '2px';
                         trail.style.height = '2px';
-                        trail.style.background = particle.element.style.background;
+                        trail.style.background = '#000';
                         trail.style.opacity = '0.3';
                         trail.style.pointerEvents = 'none';
                         trail.style.zIndex = '999';
@@ -1103,6 +1345,15 @@
                 document.getElementById('totalEnergy').textContent = this.totalEnergy.toFixed(1) + ' J';
                 document.getElementById('avgVelocity').textContent = this.avgVelocity.toFixed(1) + ' m/s';
                 document.getElementById('sysTemp').textContent = Math.max(0, this.systemTemperature / 1e20).toFixed(1) + ' K';
+                
+                // Visual feedback for high energy
+                if (this.totalEnergy > 1000) {
+                    this.pageTitle.classList.add('high-energy');
+                    this.statsElement.classList.add('high-energy');
+                } else {
+                    this.pageTitle.classList.remove('high-energy');
+                    this.statsElement.classList.remove('high-energy');
+                }
             }
             
             shouldSpawn() {
